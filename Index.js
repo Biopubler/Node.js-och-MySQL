@@ -22,31 +22,32 @@ io.on('connection', (socket) => {
   });
 });
 
-//Tilläg
 io.on('connection', (socket) => {
-  socket.on('chat message', (Hej) => {
-    
+  socket.on('chat message', (msg) => {
+    let con = mysql.createConnection({
+      host: "localhost",
+      user: "root",
+      password: "",
+      database: "webbserverprogrammering"
+    });
 
-let con = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "webbserverprogrammering"
-});
+    con.connect(function(err) {
+      if (err) return console.error(err);
+      
+      con.query(`SELECT Output FROM chattbott WHERE Input = ?`, [msg], function (err, result) {
+        if (err) throw err;
 
-con.connect(function(err) {
-  if (err) throw err;
-  con.query(`SELECT * FROM chattbott WHERE Input="${Hej}"`, function (err, result, fields) {
-    if (err) throw err;
-    console.log(result);
-      io.emit('chat message', result[0].Output);
+        if (result.length > 0) {
+          io.emit('chat message', result[0].Output);
+        } else {
+          io.emit('chat message', "Jag förstår inte...");
+        }
 
+        con.end();
+      });
+    });
   });
 });
-
-  });
-});
-//Tiläg slut
 
 server.listen(3000, () => {
   console.log('server running at http://localhost:3000');
